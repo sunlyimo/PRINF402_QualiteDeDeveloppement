@@ -1,4 +1,4 @@
-package com.kerware.simulateur;
+ package com.kerware.simulateur;
 
 /**
  *  Cette classe permet de simuler le calcul de l'impôt sur le revenu
