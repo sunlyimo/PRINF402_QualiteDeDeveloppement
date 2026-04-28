@@ -8,8 +8,8 @@ public class SimulateurTest {
     @Test
     public void testImpot_Celibataire_Revenu18626_DoitPayer1Euro() {
         // 1. Arrange (Préparation)
-        ICalculateurImpot calculateur = new AdaptateurVersCodeHerite();
-        calculateur.setRevenusNet(18626);
+    	ICalculateurImpot calculateur = new AdaptateurVersCodeHerite();
+        calculateur.setRevenusNet(200000); 
         calculateur.setSituationFamiliale(SituationFamiliale.CELIBATAIRE);
         calculateur.setNbEnfantsACharge(0);
         calculateur.setNbEnfantsSituationHandicap(0);
