@@ -264,23 +264,6 @@ public class SimulateurAmeliore implements ICalculateurImpot {
         return Math.round( mImp );
     }
 
-    public static void main(String[] args) {
-        SimulateurAmeliore simulateur = new SimulateurAmeliore();
-        long impot = simulateur.calculImpot(65000, SituationFamiliale.MARIE, 3, 0, false);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(65000, SituationFamiliale.MARIE, 3, 1, false);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(35000, SituationFamiliale.DIVORCE, 1, 0, true);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(35000, SituationFamiliale.DIVORCE, 2, 0, true);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(50000, SituationFamiliale.DIVORCE, 3, 0, true);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(50000, SituationFamiliale.DIVORCE, 3, 1, true);
-        System.out.println("Impot sur le revenu net : " + impot);
-        impot = simulateur.calculImpot(200000, SituationFamiliale.CELIBATAIRE, 0, 0, true);
-        System.out.println("Impot sur le revenu net : " + impot);
-
-    }
+   
 
 }
