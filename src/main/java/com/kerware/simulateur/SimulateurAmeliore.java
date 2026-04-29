@@ -21,7 +21,7 @@ package com.kerware.simulateur;
  *  L'auteur n'a pas fourni de tests unitaires
  **/
 
-public class SimulateurAmeliore {
+public class SimulateurAmeliore implements ICalculateurImpot {
 
 
 
@@ -58,6 +58,8 @@ public class SimulateurAmeliore {
     private int rNet = 0;
     private int nbEnf = 0;
     private int nbEnfH = 0;
+    private SituationFamiliale sitFam;
+    private boolean parIso = false;
 
     private double rFRef = 0;
     private double rImposable = 0;
@@ -71,8 +73,49 @@ public class SimulateurAmeliore {
     private double mImpDecl = 0;
     private double mImp = 0;
 
-    private boolean parIso = false;
+    // --- SETTERS ---
 
+    @Override
+    public void setRevenusNet(int rn) { this.rNet = rn; }
+
+    @Override
+    public void setSituationFamiliale(SituationFamiliale sf) { this.sitFam = sf; }
+
+    @Override
+    public void setNbEnfantsACharge(int nbe) { this.nbEnf = nbe; }
+
+    @Override
+    public void setNbEnfantsSituationHandicap(int nbesh) { this.nbEnfH = nbesh; }
+
+    @Override
+    public void setParentIsole(boolean pi) { this.parIso = pi; }
+
+    // --- MOTEUR DE CALCUL ---
+
+    @Override
+    public void calculImpotSurRevenuNet() {
+        calculImpot(rNet, sitFam, nbEnf, nbEnfH, parIso);
+    }
+
+    // --- GETTERS ---
+
+    @Override
+    public int getImpotSurRevenuNet() { return (int) mImp; }
+
+    @Override
+    public int getRevenuFiscalReference() { return (int) rFRef; }
+
+    @Override
+    public int getAbattement() { return (int) abt; }
+
+    @Override
+    public int getNbPartsFoyerFiscal() { return (int) nbPts; }
+
+    @Override
+    public int getImpotAvantDecote() { return (int) (mImp + decote); }
+
+    @Override
+    public int getDecote() { return (int) decote; }
 
     // Fonction de calcul de l'impôt sur le revenu net en France en 2024 sur les revenu 2023
 
