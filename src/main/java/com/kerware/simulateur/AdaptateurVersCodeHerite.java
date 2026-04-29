@@ -2,7 +2,7 @@ package com.kerware.simulateur;
 
 public class AdaptateurVersCodeHerite implements ICalculateurImpot {
 // 1. On crée l'instance du vieux code "Legacy"
-    private Simulateur vieuxSimulateur = new Simulateur();
+   
 
     // 2. On déclare les variables pour mémoriser les entrées de l'utilisateur
     private int revenusNet;
@@ -67,28 +67,33 @@ public class AdaptateurVersCodeHerite implements ICalculateurImpot {
         return this.impotFinal;
     }
 
+    // --- METHODES NON DISPONIBLES SUR LE VIEUX CODE ---
+    // Le vieux simulateur est une "boîte noire" qui ne donne que le résultat final.
+    // On ne peut pas facilement extraire l'abattement ou la décote sans casser le code.
+    // On renvoie donc 0 par défaut en attendant de construire ton "SimulateurAmeliore".
+
     @Override
     public int getRevenuFiscalReference() {
-        return (int) vieuxSimulateur.getrFRef();
+        return 0;
     }
 
     @Override
     public int getAbattement() {
-        return (int) vieuxSimulateur.getAbt();
+        return 0;
     }
 
     @Override
     public int getNbPartsFoyerFiscal() {
-        return (int) vieuxSimulateur.getNbPts();
+        return 0; 
     }
 
     @Override
     public int getImpotAvantDecote() {
-        return (int) (vieuxSimulateur.getmImp() + vieuxSimulateur.getDecote());
+        return 0;
     }
 
     @Override
     public int getDecote() {
-        return (int) vieuxSimulateur.getDecote();
+        return 0;
     }
 }
