@@ -43,11 +43,13 @@ public class AdaptateurVersCodeHerite implements ICalculateurImpot {
 
     // --- LE MOTEUR DU CALCUL ---
 
+    
     @Override
     public void calculImpotSurRevenuNet() {
-        // C'est ici que la magie de l'adaptateur opère. 
-        // On prend nos variables bien propres et on les injecte dans la grosse fonction illisible du vieux code.
-        long resultat = vieuxSimulateur.calculImpot(
+        // ON CRÉE UN SIMULATEUR TOUT NEUF À CHAQUE CALCUL !
+        Simulateur simulateurFrais = new Simulateur();
+        
+        long resultat = simulateurFrais.calculImpot(
             revenusNet, 
             situation, 
             nbEnfants, 
@@ -55,7 +57,6 @@ public class AdaptateurVersCodeHerite implements ICalculateurImpot {
             parentIsole
         );
         
-        // On convertit le résultat 'long' en 'int' pour respecter le contrat de l'interface
         this.impotFinal = (int) resultat;
     }
 
