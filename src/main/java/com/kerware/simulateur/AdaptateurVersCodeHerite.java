@@ -67,33 +67,28 @@ public class AdaptateurVersCodeHerite implements ICalculateurImpot {
         return this.impotFinal;
     }
 
-    // --- METHODES NON DISPONIBLES SUR LE VIEUX CODE ---
-    // Le vieux simulateur est une "boîte noire" qui ne donne que le résultat final.
-    // On ne peut pas facilement extraire l'abattement ou la décote sans casser le code.
-    // On renvoie donc 0 par défaut en attendant de construire ton "SimulateurAmeliore".
-
     @Override
     public int getRevenuFiscalReference() {
-        return 0;
+        return (int) vieuxSimulateur.getrFRef();
     }
 
     @Override
     public int getAbattement() {
-        return 0;
+        return (int) vieuxSimulateur.getAbt();
     }
 
     @Override
     public int getNbPartsFoyerFiscal() {
-        return 0; 
+        return (int) vieuxSimulateur.getNbPts();
     }
 
     @Override
     public int getImpotAvantDecote() {
-        return 0;
+        return (int) (vieuxSimulateur.getmImp() + vieuxSimulateur.getDecote());
     }
 
     @Override
     public int getDecote() {
-        return 0;
+        return (int) vieuxSimulateur.getDecote();
     }
 }

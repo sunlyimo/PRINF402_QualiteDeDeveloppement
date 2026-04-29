@@ -220,6 +220,134 @@ public class Simulateur {
 
         return Math.round( mImp );
     }
+    public int getL00() {
+        return l00;
+    }
+
+    public int getL01() {
+        return l01;
+    }
+
+    public int getL02() {
+        return l02;
+    }
+
+    public int getL03() {
+        return l03;
+    }
+
+    public int getL04() {
+        return l04;
+    }
+
+    public int getL05() {
+        return l05;
+    }
+
+    public double getT00() {
+        return t00;
+    }
+
+    public double getT01() {
+        return t01;
+    }
+
+    public double getT02() {
+        return t02;
+    }
+
+    public double getT03() {
+        return t03;
+    }
+
+    public double getT04() {
+        return t04;
+    }
+
+    public int getlAbtMax() {
+        return lAbtMax;
+    }
+
+    public int getlAbtMin() {
+        return lAbtMin;
+    }
+
+    public double gettAbt() {
+        return tAbt;
+    }
+
+    public double getPlafDemiPart() {
+        return plafDemiPart;
+    }
+
+    public double getSeuilDecoteDeclarantSeul() {
+        return seuilDecoteDeclarantSeul;
+    }
+
+    public double getSeuilDecoteDeclarantCouple() {
+        return seuilDecoteDeclarantCouple;
+    }
+
+    public double getDecoteMaxDeclarantSeul() {
+        return decoteMaxDeclarantSeul;
+    }
+
+    public double getDecoteMaxDeclarantCouple() {
+        return decoteMaxDeclarantCouple;
+    }
+
+    public double getTauxDecote() {
+        return tauxDecote;
+    }
+
+    public int getrNet() {
+        return rNet;
+    }
+
+    public int getNbEnf() {
+        return nbEnf;
+    }
+
+    public int getNbEnfH() {
+        return nbEnfH;
+    }
+
+    public double getrFRef() {
+        return rFRef;
+    }
+
+    public double getrImposable() {
+        return rImposable;
+    }
+
+    public double getAbt() {
+        return abt;
+    }
+
+    public double getNbPtsDecl() {
+        return nbPtsDecl;
+    }
+
+    public double getNbPts() {
+        return nbPts;
+    }
+
+    public double getDecote() {
+        return decote;
+    }
+
+    public double getmImpDecl() {
+        return mImpDecl;
+    }
+
+    public double getmImp() {
+        return mImp;
+    }
+
+    public boolean isParIso() {
+        return parIso;
+    }
+
 
     public static void main(String[] args) {
         Simulateur simulateur = new Simulateur();
