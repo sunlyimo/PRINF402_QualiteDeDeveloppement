@@ -1,269 +1,255 @@
 package com.kerware.simulateur;
 
 /**
- *  Cette classe permet de simuler le calcul de l'impôt sur le revenu
- *  en France pour l'année 2024 sur les revenus de l'année 2023 pour
- *  des cas simples de contribuables célibataires, mariés, divorcés, veufs
- *  ou pacsés avec ou sans enfants à charge ou enfants en situation de handicap
- *  et parent isolé.
- *
- *  EXEMPLE DE CODE DE TRES MAUVAISE QUALITE FAIT PAR UN DEBUTANT
- *
- *  Pas de lisibilité, pas de commentaires, pas de tests
- *  Pas de documentation, pas de gestion des erreurs
- *  Pas de logique métier, pas de modularité
- *  Pas de gestion des exceptions, pas de gestion des logs
- *  Principe "Single Responsability" non respecté
- *  Pas de traçabilité vers les exigences métier
- *
- *  Pourtant ce code fonctionne correctement
- *  Il s'agit d'un "legacy" code qui est difficile à maintenir
- *  L'auteur n'a pas fourni de tests unitaires
- **/
-
+ * Simule le calcul de l'impôt sur le revenu en France pour l'année 2024
+ * (sur les revenus de l'année 2023), pour des contribuables :
+ * célibataires, mariés, divorcés, veufs ou pacsés,
+ * avec ou sans enfants à charge, enfants handicapés, ou parent isolé.
+ */
 public class SimulateurAmeliore implements ICalculateurImpot {
 
+    // --- Tranches du barème progressif de l'impôt 2024 ---
+    private static final int[] LIMITES_TRANCHES = {
+        0, 11294, 28797, 82341, 177106, Integer.MAX_VALUE
+    };
 
+    // --- Taux d'imposition par tranche ---
+    private static final double[] TAUX_TRANCHES = {
+        0.0, 0.11, 0.30, 0.41, 0.45
+    };
 
-    private final int l00 = 0 ;
-    private final int l01 = 11294;
-    private final int l02 = 28797;
-    private final int l03 = 82341;
-    private final int l04 = 177106;
-    private final int l05 = Integer.MAX_VALUE;
+    // --- Abattement forfaitaire pour frais professionnels ---
+    private static final double TAUX_ABATTEMENT       = 0.10;
+    private static final int    ABATTEMENT_MINIMUM    = 495;
+    private static final int    ABATTEMENT_MAXIMUM    = 14171;
 
-    private final int[] limites = new int[6];
+    // --- Plafonnement du quotient familial ---
+    private static final double PLAFOND_DEMI_PART = 1759.0;
 
-    private final double t00 = 0.0;
-    private final double t01 = 0.11;
-    private final double t02 = 0.3;
-    private final double t03 = 0.41;
-    private final double t04 = 0.45;
+    // --- Décote (réduction pour les faibles revenus) ---
+    private static final double SEUIL_DECOTE_SEUL   = 1929.0;
+    private static final double SEUIL_DECOTE_COUPLE = 3191.0;
+    private static final double DECOTE_MAX_SEUL     = 873.0;
+    private static final double DECOTE_MAX_COUPLE   = 1444.0;
+    private static final double TAUX_DECOTE         = 0.4525;
 
-    private final double[] taux = new double[5];
+    // --- Données du contribuable ---
+    private int               revenuNet;
+    private SituationFamiliale situationFamiliale;
+    private int               nbEnfants;
+    private int               nbEnfantsHandicapes;
+    private boolean           estParentIsole;
 
-    private final int lAbtMax = 14171;
-    private final int lAbtMin = 495;
-    private final double tAbt = 0.1;
+    // --- Résultats intermédiaires et finaux ---
+    private double revenuFiscalReference;
+    private double abattement;
+    private double nbPartsDeclarants;
+    private double nbPartsFoyer;
+    private double impotDeclarants;
+    private double impotFoyer;
+    private double decote;
 
-    private final double plafDemiPart = 1759;
-
-    private final double seuilDecoteDeclarantSeul = 1929;
-    private final double seuilDecoteDeclarantCouple    = 3191;
-
-    private final double decoteMaxDeclarantSeul = 873;
-    private final double decoteMaxDeclarantCouple = 1444;
-    private final double tauxDecote = 0.4525;
-
-    private int rNet = 0;
-    private int nbEnf = 0;
-    private int nbEnfH = 0;
-    private SituationFamiliale sitFam;
-    private boolean parIso = false;
-
-    private double rFRef = 0;
-    private double rImposable = 0;
-
-    private double abt = 0;
-
-    private double nbPtsDecl = 0;
-    private double nbPts = 0;
-    private double decote = 0;
-
-    private double mImpDecl = 0;
-    private double mImp = 0;
-
-    // --- SETTERS ---
+    // =========================================================================
+    // SETTERS
+    // =========================================================================
 
     @Override
-    public void setRevenusNet(int rn) { this.rNet = rn; }
+    public void setRevenusNet(int revenuNet) {
+        this.revenuNet = revenuNet;
+    }
 
     @Override
-    public void setSituationFamiliale(SituationFamiliale sf) { this.sitFam = sf; }
+    public void setSituationFamiliale(SituationFamiliale sf) {
+        this.situationFamiliale = sf;
+    }
 
     @Override
-    public void setNbEnfantsACharge(int nbe) { this.nbEnf = nbe; }
+    public void setNbEnfantsACharge(int nb) {
+        this.nbEnfants = nb;
+    }
 
     @Override
-    public void setNbEnfantsSituationHandicap(int nbesh) { this.nbEnfH = nbesh; }
+    public void setNbEnfantsSituationHandicap(int nb) {
+        this.nbEnfantsHandicapes = nb;
+    }
 
     @Override
-    public void setParentIsole(boolean pi) { this.parIso = pi; }
+    public void setParentIsole(boolean estParentIsole) {
+        this.estParentIsole = estParentIsole;
+    }
 
-    // --- MOTEUR DE CALCUL ---
+    // =========================================================================
+    // GETTERS
+    // =========================================================================
+
+    @Override
+    public int getImpotSurRevenuNet() {
+        return (int) impotFoyer;
+    }
+
+    @Override
+    public int getRevenuFiscalReference() {
+        return (int) revenuFiscalReference;
+    }
+
+    @Override
+    public int getAbattement() {
+        return (int) abattement;
+    }
+
+    @Override
+    public int getNbPartsFoyerFiscal() {
+        return (int) nbPartsFoyer;
+    }
+
+    @Override
+    public int getImpotAvantDecote() {
+        return (int) (impotFoyer + decote);
+    }
+
+    @Override
+    public int getDecote() {
+        return (int) decote;
+    }
+
+    // =========================================================================
+    // POINT D'ENTRÉE DU CALCUL
+    // =========================================================================
 
     @Override
     public void calculImpotSurRevenuNet() {
-        calculImpot(rNet, sitFam, nbEnf, nbEnfH, parIso);
+        calculImpot(revenuNet, situationFamiliale, nbEnfants, nbEnfantsHandicapes, estParentIsole);
     }
 
-    // --- GETTERS ---
+    /**
+     * Calcule l'impôt sur le revenu net et retourne le montant arrondi.
+     */
+    public long calculImpot(int revNet, SituationFamiliale sitFam,
+                            int nbEnf, int nbEnfH, boolean parentIsole) {
+        this.revenuNet           = revNet;
+        this.nbEnfants           = nbEnf;
+        this.nbEnfantsHandicapes = nbEnfH;
+        this.estParentIsole      = parentIsole;
 
-    @Override
-    public int getImpotSurRevenuNet() { return (int) mImp; }
+        calculerAbattementEtRevenuFiscal();
+        calculerNombreDeParts(sitFam);
+        calculerImpotDeclarants();
+        calculerImpotFoyer();
+        appliquerPlafonnementQuotientFamilial();
+        appliquerDecote();
 
-    @Override
-    public int getRevenuFiscalReference() { return (int) rFRef; }
+        return Math.round(impotFoyer);
+    }
 
-    @Override
-    public int getAbattement() { return (int) abt; }
+    // =========================================================================
+    // ÉTAPES DE CALCUL
+    // =========================================================================
 
-    @Override
-    public int getNbPartsFoyerFiscal() { return (int) nbPts; }
+    /** Étape 1 : abattement forfaitaire de 10 % plafonné, puis revenu fiscal de référence. */
+    private void calculerAbattementEtRevenuFiscal() {
+        abattement = revenuNet * TAUX_ABATTEMENT;
+        abattement = Math.min(abattement, ABATTEMENT_MAXIMUM);
+        abattement = Math.max(abattement, ABATTEMENT_MINIMUM);
 
-    @Override
-    public int getImpotAvantDecote() { return (int) (mImp + decote); }
+        revenuFiscalReference = revenuNet - abattement;
+    }
 
-    @Override
-    public int getDecote() { return (int) decote; }
+    /** Étape 2 : nombre de parts fiscales selon la situation familiale et les enfants. */
+    private void calculerNombreDeParts(SituationFamiliale sitFam) {
+        nbPartsDeclarants = partsSelonSituationFamiliale(sitFam);
+        nbPartsFoyer      = nbPartsDeclarants + partsEnfants() + partsSupplementaires();
+    }
 
-    // Fonction de calcul de l'impôt sur le revenu net en France en 2024 sur les revenu 2023
+    private double partsSelonSituationFamiliale(SituationFamiliale sitFam) {
+        return switch (sitFam) {
+            case MARIE  -> 2.0;
+            case VEUF   -> 1.0; // Le veuf avec enfant bénéficie d'une part supplémentaire via partsEnfants()
+            default     -> 1.0; // CELIBATAIRE, DIVORCE
+        };
+    }
 
-    public long calculImpot( int revNet, SituationFamiliale sitFam, int nbEnfants, int nbEnfantsHandicapes, boolean parentIsol) {
-
-        rNet = revNet;
-
-        nbEnf = nbEnfants;
-        nbEnfH = nbEnfantsHandicapes;
-        parIso = parentIsol;
-
-        limites[0] = l00;
-        limites[1] = l01;
-        limites[2] = l02;
-        limites[3] = l03;
-        limites[4] = l04;
-        limites[5] = l05;
-
-        taux[0] = t00;
-        taux[1] = t01;
-        taux[2] = t02;
-        taux[3] = t03;
-        taux[4] = t04;
-
-        // Abattement
-
-        abt = rNet * tAbt;
-
-        if (abt > lAbtMax) {
-            abt = lAbtMax;
+    private double partsEnfants() {
+        if (nbEnfants <= 2) {
+            return nbEnfants * 0.5;
+        } else {
+            // À partir du 3e enfant : 1 part entière par enfant supplémentaire
+            return 1.0 + (nbEnfants - 2);
         }
+    }
 
-        if (abt < lAbtMin) {
-            abt = lAbtMin;
+    private double partsSupplementaires() {
+        double parts = 0;
+        if (estParentIsole && nbEnfants > 0) {
+            parts += 0.5;
         }
+        parts += nbEnfantsHandicapes * 0.5;
+        return parts;
+    }
 
+    /** Étape 3 : impôt brut calculé uniquement pour les déclarants (sans enfants). */
+    private void calculerImpotDeclarants() {
+        double revenuParPartDeclarant = revenuFiscalReference / nbPartsDeclarants;
+        impotDeclarants = Math.round(appliquerBareme(revenuParPartDeclarant) * nbPartsDeclarants);
+    }
 
-        rFRef = rNet - abt;
+    /** Étape 4 : impôt brut calculé avec toutes les parts du foyer (enfants inclus). */
+    private void calculerImpotFoyer() {
+        double revenuParPartFoyer = revenuFiscalReference / nbPartsFoyer;
+        impotFoyer = Math.round(appliquerBareme(revenuParPartFoyer) * nbPartsFoyer);
+    }
 
-        // parts déclarants
-        switch ( sitFam ) {
-            case CELIBATAIRE:
-                nbPtsDecl = 1;
-                break;
-            case MARIE:
-                nbPtsDecl = 2;
-                break;
-            case DIVORCE:
-                nbPtsDecl = 1;
-                break;
-            case VEUF:
-                if ( nbEnf == 0 ) {
-                    nbPtsDecl = 1;
-                } else {
-                    nbPtsDecl = 2;
-                }
-                nbPtsDecl = 1;
-                break;
-        }
-
-        // parts enfants à charge
-        if ( nbEnf <= 2 ) {
-            nbPts = nbPtsDecl + nbEnf * 0.5;
-        } else if ( nbEnf > 2 ) {
-            nbPts = nbPtsDecl+  1.0 + ( nbEnf - 2 );
-        }
-
-        // parent isolé
-        if ( parIso ) {
-            if ( nbEnf > 0 ){
-                nbPts = nbPts + 0.5;
-            }
-        }
-
-        // enfant handicapé
-        nbPts = nbPts + nbEnfH * 0.5;
-
-        // impôt des declarants
-        rImposable = rFRef / nbPtsDecl ;
-
-        mImpDecl = 0;
-
-        int i = 0;
-        do {
-            if ( rImposable >= limites[i] && rImposable < limites[i+1] ) {
-                mImpDecl += ( rImposable - limites[i] ) * taux[i];
+    /**
+     * Applique le barème progressif à un revenu par part et retourne l'impôt par part.
+     */
+    private double appliquerBareme(double revenuParPart) {
+        double impot = 0;
+        for (int i = 0; i < TAUX_TRANCHES.length; i++) {
+            if (revenuParPart < LIMITES_TRANCHES[i + 1]) {
+                impot += (revenuParPart - LIMITES_TRANCHES[i]) * TAUX_TRANCHES[i];
                 break;
             } else {
-                mImpDecl += ( limites[i+1] - limites[i] ) * taux[i];
+                impot += (LIMITES_TRANCHES[i + 1] - LIMITES_TRANCHES[i]) * TAUX_TRANCHES[i];
             }
-            i++;
-        } while( i < 5);
-
-        mImpDecl = mImpDecl * nbPtsDecl;
-        mImpDecl = Math.round( mImpDecl );
-
-        // impôt foyer fiscal complet
-        rImposable =  rFRef / nbPts;
-        mImp = 0;
-        i = 0;
-
-        do {
-            if ( rImposable >= limites[i] && rImposable < limites[i+1] ) {
-                mImp += ( rImposable - limites[i] ) * taux[i];
-                break;
-            } else {
-                mImp += ( limites[i+1] - limites[i] ) * taux[i];
-            }
-            i++;
-        } while( i < 5);
-
-        mImp = mImp * nbPts;
-        mImp = Math.round( mImp );
-
-        // baisse impot
-        double baisseImpot = mImpDecl - mImp;
-
-        // dépassement plafond
-        double ecartPts = nbPts - nbPtsDecl;
-
-        double plafond = (ecartPts / 0.5) * plafDemiPart;
-
-        if ( baisseImpot >= plafond ) {
-            mImp = mImpDecl - plafond;
         }
+        return impot;
+    }
 
+    /**
+     * Étape 5 : le gain lié aux enfants ne peut pas dépasser un plafond
+     * de 1 759 € par demi-part supplémentaire.
+     */
+    private void appliquerPlafonnementQuotientFamilial() {
+        double gainBrutEnfants    = impotDeclarants - impotFoyer;
+        double nbDemiPartsEnfants = nbPartsFoyer - nbPartsDeclarants;
+        double plafond            = (nbDemiPartsEnfants / 0.5) * PLAFOND_DEMI_PART;
+
+        if (gainBrutEnfants >= plafond) {
+            impotFoyer = impotDeclarants - plafond;
+        }
+    }
+
+    /**
+     * Étape 6 : réduction d'impôt pour les contribuables modestes (décote).
+     */
+    private void appliquerDecote() {
         decote = 0;
-        // decote
-        if ( nbPtsDecl == 1 ) {
-            if ( mImp < seuilDecoteDeclarantSeul ) {
-                 decote = decoteMaxDeclarantSeul - ( mImp  * tauxDecote );
-            }
-        }
-        if (  nbPtsDecl == 2 ) {
-            if ( mImp < seuilDecoteDeclarantCouple ) {
-                 decote =  decoteMaxDeclarantCouple - ( mImp  * tauxDecote  );
-            }
-        }
-        decote = Math.round( decote );
-        if ( mImp <= decote ) {
-            decote = mImp;
+
+        boolean estSeul   = (nbPartsDeclarants == 1);
+        boolean estCouple = (nbPartsDeclarants == 2);
+
+        if (estSeul && impotFoyer < SEUIL_DECOTE_SEUL) {
+            decote = DECOTE_MAX_SEUL - impotFoyer * TAUX_DECOTE;
+        } else if (estCouple && impotFoyer < SEUIL_DECOTE_COUPLE) {
+            decote = DECOTE_MAX_COUPLE - impotFoyer * TAUX_DECOTE;
         }
 
-        mImp = mImp - decote;
+        decote = Math.round(decote);
 
-        return Math.round( mImp );
+        // La décote ne peut pas dépasser l'impôt lui-même (pas de remboursement)
+        if (impotFoyer <= decote) {
+            decote = impotFoyer;
+        }
+
+        impotFoyer -= decote;
     }
-
-   
-
 }
