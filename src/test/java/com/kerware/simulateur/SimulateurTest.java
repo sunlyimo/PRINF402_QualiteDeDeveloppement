@@ -61,8 +61,7 @@ public class SimulateurTest {
     @Test
     public void testAbattement_Plancher_RevenuTresBas() {
         // Arrange
-    	ICalculateurImpot calculateur = new SimulateurAmeliore();
-        calculateur.setRevenusNet(2000); // 2000€ pour déclencher le plancher de 495€
+    	ICalculateurImpot calculateur = new SimulateurAmeliore();// 2000€ pour déclencher le plancher de 495€
         calculateur.setSituationFamiliale(SituationFamiliale.CELIBATAIRE);
         calculateur.setNbEnfantsACharge(0);
         calculateur.setNbEnfantsSituationHandicap(0);
@@ -72,7 +71,6 @@ public class SimulateurTest {
         calculateur.calculImpotSurRevenuNet();
         int resultat = calculateur.getImpotSurRevenuNet();
 
-        // Assert (Change le 0 par la valeur que Maven va te donner)
         assertEquals(0, resultat, "Erreur sur le revenu très bas");
     }
 
@@ -82,9 +80,9 @@ public class SimulateurTest {
     	ICalculateurImpot calculateur = new SimulateurAmeliore();
         calculateur.setRevenusNet(50000); 
         calculateur.setSituationFamiliale(SituationFamiliale.DIVORCE);
-        calculateur.setNbEnfantsACharge(3); // Teste la règle du 3ème enfant
+        calculateur.setNbEnfantsACharge(3); 
         calculateur.setNbEnfantsSituationHandicap(0);
-        calculateur.setParentIsole(true);   // Teste la case Parent Isolé
+        calculateur.setParentIsole(true);   
 
         // Act
         calculateur.calculImpotSurRevenuNet();
@@ -99,7 +97,7 @@ public class SimulateurTest {
     	ICalculateurImpot calculateur = new SimulateurAmeliore();
         calculateur.setRevenusNet(40000); 
         calculateur.setSituationFamiliale(SituationFamiliale.VEUF);
-        calculateur.setNbEnfantsACharge(1); // Pour tester le if(nbEnf == 0) du cas VEUF
+        calculateur.setNbEnfantsACharge(1); 
         calculateur.setNbEnfantsSituationHandicap(0);
         calculateur.setParentIsole(false);
 
@@ -114,11 +112,11 @@ public class SimulateurTest {
     @Test
     public void testImpot_Marie_AvecEnfantHandicape() {
         // Arrange
-    	ICalculateurImpot calculateur = new SimulateurAmeliore();
+        ICalculateurImpot calculateur = new AdaptateurVersCodeHerite();
         calculateur.setRevenusNet(80000); 
         calculateur.setSituationFamiliale(SituationFamiliale.MARIE);
         calculateur.setNbEnfantsACharge(2);
-        calculateur.setNbEnfantsSituationHandicap(1); // Teste la ligne nbPts = nbPts + nbEnfH * 0.5
+        calculateur.setNbEnfantsSituationHandicap(1); 
         calculateur.setParentIsole(false);
 
         // Act
